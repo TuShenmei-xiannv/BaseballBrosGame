@@ -8,6 +8,25 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
+    <!-- 性能优化相关meta标签 -->
+    <meta http-equiv="x-dns-prefetch-control" content="on">
+    <meta name="renderer" content="webkit">
+    <meta name="force-rendering" content="webkit">
+    
+    <!-- 关键资源预加载 -->
+    <link rel="preload" href="https://cdn.tailwindcss.com" as="script">
+    <link rel="preload" href="/images/screenshot.jpg" as="image" fetchpriority="high">
+    
+    <!-- 预连接关键域名 -->
+    <link rel="preconnect" href="https://baseballbrosio.io" crossorigin>
+    <link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin>
+    <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
+    
+    <!-- DNS预获取 -->
+    <link rel="dns-prefetch" href="https://baseballbrosio.io">
+    <link rel="dns-prefetch" href="https://cdn.tailwindcss.com">
+    <link rel="dns-prefetch" href="https://www.googletagmanager.com">
+    
     <!-- Favicon -->
     <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
@@ -18,17 +37,6 @@
     
     <!-- 添加预加载 -->
     <link rel="preload" href="https://baseballbrosio.io/game/baseball-bros/" as="document">
-    <link rel="preload" href="/images/screenshot.jpg" as="image">
-
-    <!-- 添加预连接 -->
-    <link rel="preconnect" href="https://baseballbrosio.io">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preconnect" href="https://www.googletagmanager.com">
-
-    <!-- DNS 预获取 -->
-    <link rel="dns-prefetch" href="https://baseballbrosio.io">
-    <link rel="dns-prefetch" href="https://fonts.gstatic.com">
-    <link rel="dns-prefetch" href="https://www.googletagmanager.com">
 
     <!-- 社交媒体元标签 -->
     <meta property="og:site_name" content="Baseball Bros Unblocked">
@@ -114,7 +122,94 @@
         }
     </script>
 
+    <!-- 性能优化：延迟加载 -->
+    <script>
+        // 延迟加载iframe
+        document.addEventListener('DOMContentLoaded', () => {
+            const iframe = document.querySelector('iframe[data-src]');
+            if (iframe) {
+                // 2秒后加载iframe
+                setTimeout(() => {
+                    iframe.src = iframe.dataset.src;
+                }, 2000);
+            }
+
+            // 延迟加载图片
+            const lazyImages = document.querySelectorAll('img[data-src]');
+            if ('IntersectionObserver' in window) {
+                const imageObserver = new IntersectionObserver((entries, observer) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            const img = entry.target;
+                            img.src = img.dataset.src;
+                            observer.unobserve(img);
+                        }
+                    });
+                });
+
+                lazyImages.forEach(img => imageObserver.observe(img));
+            } else {
+                // 降级处理：直接加载图片
+                lazyImages.forEach(img => img.src = img.dataset.src);
+            }
+        });
+
+        // 移动端检测
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        
+        // 移动端优化
+        if (isMobile) {
+            // 添加移动端专用样式
+            document.documentElement.classList.add('is-mobile');
+            
+            // 优化触摸事件
+            document.addEventListener('touchstart', function() {}, {passive: true});
+            
+            // 移动端性能优化
+            if ('connection' in navigator) {
+                if (navigator.connection.saveData) {
+                    // 数据节省模式
+                    document.querySelectorAll('img:not([loading="lazy"])').forEach(img => {
+                        img.loading = 'lazy';
+                    });
+                }
+            }
+        }
+    </script>
+
+    <!-- 内联关键CSS -->
     <style type="text/css">
+        /* 首屏关键样式 */
+        .initial-load {
+            opacity: 0;
+            transition: opacity 0.3s ease-in;
+        }
+        .loaded {
+            opacity: 1;
+        }
+        /* 骨架屏样式 */
+        .skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        
+        /* 移动端优化 */
+        .is-mobile {
+            touch-action: manipulation;
+            -webkit-text-size-adjust: 100%;
+        }
+        
+        .is-mobile button,
+        .is-mobile a {
+            min-height: 44px;
+            min-width: 44px;
+        }
+        
         @media (max-width: 640px) {
             header h1 {
                 font-size: 2rem;
@@ -122,7 +217,12 @@
             header p {
                 font-size: 1rem;
             }
+            .container {
+                padding-left: 16px;
+                padding-right: 16px;
+            }
         }
+        
         .text-shadow {
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
         }
@@ -160,14 +260,17 @@
                     <meta itemprop="playMode" content="Browser"/>
                     <meta itemprop="device" content="PC, Mobile, Tablet"/>
                     <div class="relative w-full" style="padding-top: 56.25%">
+                        <!-- 添加骨架屏 -->
+                        <div class="skeleton absolute top-0 left-0 w-full h-full"></div>
                         <iframe
-                            src="https://baseballbrosio.io/game/baseball-bros/"
-                            class="absolute top-0 left-0 w-full h-full"
+                            data-src="https://baseballbrosio.io/game/baseball-bros/"
+                            class="absolute top-0 left-0 w-full h-full opacity-0 transition-opacity duration-300"
                             loading="lazy"
                             decoding="async"
                             title="Play Baseball Bros Unblocked"
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            allowfullscreen>
+                            allowfullscreen
+                            onload="this.classList.add('opacity-100'); this.previousElementSibling.style.display='none';">
                         </iframe>
                     </div>
                 </div>
